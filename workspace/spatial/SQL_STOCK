@@ -1,0 +1,66 @@
+CREATE TABLE stock (
+  ticker CHAR(5) NOT NULL,
+  ticker_date DATE NOT NULL,
+  ticker_range LINESTRING NOT NULL,
+  PRIMARY KEY(ticker, ticker_date)
+);
+
+
+
+
+INSERT INTO stock VALUES('FOO', '20040401',
+  GeomFromText('LINESTRING(20040101 50,20040102 55)'));
+INSERT INTO stock VALUES('FOO', '20040402',
+  GeomFromText('LINESTRING(20040102 55,20040103 67)'));
+INSERT INTO stock VALUES('FOO', '20040403',
+  GeomFromText('LINESTRING(20040103 67,20040104 63)'));
+INSERT INTO stock VALUES('FOO', '20040404',
+  GeomFromText('LINESTRING(20040104 63,20040105 57)'));
+INSERT INTO stock VALUES('FOO', '20040405',
+  GeomFromText('LINESTRING(20040105 57,20040106 58)'));
+
+INSERT INTO stock VALUES('BAR', '20040401',
+  GeomFromText('LINESTRING(20040101 37,20040102 38)'));
+INSERT INTO stock VALUES('BAR', '20040402',
+  GeomFromText('LINESTRING(20040102 38,20040103 42)'));
+INSERT INTO stock VALUES('BAR', '20040403',
+  GeomFromText('LINESTRING(20040103 42,20040104 45)'));
+INSERT INTO stock VALUES('BAR', '20040404',
+  GeomFromText('LINESTRING(20040104 45,20040105 62)'));
+INSERT INTO stock VALUES('BAR', '20040405',
+  GeomFromText('LINESTRING(20040105 62,20040106 56)'));
+
+INSERT INTO stock VALUES('BLG', '20040401',
+  GeomFromText('LINESTRING(20040101 54,20040102 85)'));
+INSERT INTO stock VALUES('BLG', '20040402',
+  GeomFromText('LINESTRING(20040102 85,20040103 87)'));
+INSERT INTO stock VALUES('BLG', '20040403',
+  GeomFromText('LINESTRING(20040103 87,20040104 93)'));
+INSERT INTO stock VALUES('BLG', '20040404',
+  GeomFromText('LINESTRING(20040104 93,20040105 62)'));
+INSERT INTO stock VALUES('BLG', '20040405',
+  GeomFromText('LINESTRING(20040105 65,20040106 52)'));
+
+
+
+
+
+
+SELECT s2.ticker, s2.ticker_date
+FROM stock s2
+WHERE s2.ticker != 'FOO'
+AND 
+   MBRINTERSECTS(s2.ticker_range, (SELECT LineStringFromWKB(LineString(
+																	Point(
+																			MIN(X(STARTPOINT(s1.ticker_range))),
+																			MIN(IF( Y(STARTPOINT(s1.ticker_range)) < Y(ENDPOINT(s1.ticker_range)) , Y(STARTPOINT(s1.ticker_range)) , Y(ENDPOINT(s1.ticker_range)) ))
+																		  ),
+																	Point(MAX(X(STARTPOINT(s1.ticker_range))),
+																		  MAX(IF(Y(STARTPOINT(s1.ticker_range)) > Y(ENDPOINT(s1.ticker_range)), Y(STARTPOINT(s1.ticker_range)), Y(ENDPOINT(s1.ticker_range))))
+																		  )
+													                )
+															)
+									 FROM stock s1
+									 WHERE s1.ticker = 'FOO'
+									)
+				) = 1;

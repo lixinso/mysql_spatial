@@ -1,0 +1,36 @@
+CREATE TABLE address (
+  address CHAR(80) NOT NULL,
+  address_loc POINT NOT NULL,
+  PRIMARY KEY(address),
+  SPATIAL KEY(address_loc)
+);
+
+CREATE TABLE cab (
+  cab_id INT AUTO_INCREMENT NOT NULL,
+  cab_driver CHAR(80) NOT NULL,
+  cab_loc POINT NOT NULL,
+  PRIMARY KEY(cab_id),
+  SPATIAL KEY(cab_loc)
+);
+
+INSERT INTO address VALUES('Foobar street 12', GeomFromText('POINT(2671 2500)'));
+INSERT INTO address VALUES('Foobar street 56', GeomFromText('POINT(2971 2520)'));
+INSERT INTO address VALUES('Foobar street 78', GeomFromText('POINT(3171 2510)'));
+INSERT INTO address VALUES('Foobar street 97', GeomFromText('POINT(5671 2530)'));
+INSERT INTO address VALUES('Foobar street 99', GeomFromText('POINT(6271 2460)'));
+INSERT INTO address VALUES('Bloggs lane 10', GeomFromText('POINT(5673 3520)'));
+INSERT INTO address VALUES('Bloggs lane 20', GeomFromText('POINT(5665 3550)'));
+INSERT INTO address VALUES('Bloggs lane 45', GeomFromText('POINT(5571 3510)'));
+
+INSERT INTO cab VALUES(0, 'Joe Bloggs', GeomFromText('POINT(2262 2100)'));
+INSERT INTO cab VALUES(0, 'Bill Bloggs', GeomFromText('POINT(2441 1980)'));
+INSERT INTO cab VALUES(0, 'Sam Spade', GeomFromText('POINT(5400 3200)'));
+
+
+
+SELECT
+  c.cab_driver,
+  Round(glength(LineStringFromWKB(LineString(GeomFromText(astext(c.cab_loc)),GeomFromText(astext(a.address_loc)))))) AS distance
+FROM cab c, address a
+WHERE a.address = 'Foobar street 99'
+ORDER BY distance ASC LIMIT 1;
